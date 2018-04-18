@@ -1,6 +1,6 @@
 package com.cloudin.commons.langs.support.mybatis;
 
-import com.cloudin.commons.langs.AESUtils;
+import com.cloudin.commons.langs.security.AESUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
