@@ -10,7 +10,7 @@ public class BaseResult<T> implements IBaseResult {
 	private Integer   code;
 	private String    message;
 	private T         data;
-	private Exception exception;
+	private transient Exception exception;
 	
 	public BaseResult(){
 	
