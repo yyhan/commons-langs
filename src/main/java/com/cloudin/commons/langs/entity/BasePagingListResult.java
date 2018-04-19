@@ -8,7 +8,7 @@ import java.util.List;
  * @author 小天
  * @version 1.0.0, 2017/11/28 0028 15:24
  */
-public class BaseListWithPageResult<T> implements IBaseResult {
+public class BasePagingListResult<T> implements IBaseResult {
 	
 	private Integer   code;
 	private String    message;
@@ -24,22 +24,22 @@ public class BaseListWithPageResult<T> implements IBaseResult {
 	 */
 	private Integer filteredTotal;
 	
-	protected BaseListWithPageResult() {
+	protected BasePagingListResult() {
 	}
 	
-	protected BaseListWithPageResult(List<T> data) {
+	protected BasePagingListResult(List<T> data) {
 		this.data = data;
 	}
 	
-	public static <U> BaseListWithPageResult<U> build() {
-		return new BaseListWithPageResult<U>();
+	public static <U> BasePagingListResult<U> build() {
+		return new BasePagingListResult<U>();
 	}
 	
-	public static <U> BaseListWithPageResult<U> build(List<U> data) {
-		return new BaseListWithPageResult<U>(data);
+	public static <U> BasePagingListResult<U> build(List<U> data) {
+		return new BasePagingListResult<U>(data);
 	}
 	
-	public BaseListWithPageResult<T> success(List<T> data, Integer total) {
+	public BasePagingListResult<T> success(List<T> data, Integer total) {
 		this.code = 0;
 		this.data = data;
 		this.total = total;
@@ -47,7 +47,7 @@ public class BaseListWithPageResult<T> implements IBaseResult {
 		return this;
 	}
 	
-	public BaseListWithPageResult<T> success(List<T> data, Integer total, Integer filteredTotal) {
+	public BasePagingListResult<T> success(List<T> data, Integer total, Integer filteredTotal) {
 		this.code = 0;
 		this.data = data;
 		this.total = total;
@@ -55,30 +55,30 @@ public class BaseListWithPageResult<T> implements IBaseResult {
 		return this;
 	}
 	
-	public BaseListWithPageResult<T> error(int code, String message) {
+	public BasePagingListResult<T> error(int code, String message) {
 		this.code = code;
 		this.message = message;
 		return this;
 	}
 	
-	public BaseListWithPageResult<T> error(int code, String message, Exception exception) {
+	public BasePagingListResult<T> error(int code, String message, Exception exception) {
 		this.code = code;
 		this.message = message;
 		this.exception = exception;
 		return this;
 	}
 	
-	public BaseListWithPageResult<T> withCode(int code) {
+	public BasePagingListResult<T> withCode(int code) {
 		this.code = code;
 		return this;
 	}
 	
-	public BaseListWithPageResult<T> withMessage(String message) {
+	public BasePagingListResult<T> withMessage(String message) {
 		this.message = message;
 		return this;
 	}
 	
-	public BaseListWithPageResult<T> withData(List<T> data) {
+	public BasePagingListResult<T> withData(List<T> data) {
 		this.data = data;
 		return this;
 	}

@@ -6,7 +6,7 @@ import java.io.Serializable;
  * @author 小天
  * @version 1.0.0, 2017/11/28 0028 15:38
  */
-public class BaseListWithPageRequest implements Serializable {
+public class BasePagingListRequest implements Serializable {
 	
 	/**
 	 * 每页容量，默认10
