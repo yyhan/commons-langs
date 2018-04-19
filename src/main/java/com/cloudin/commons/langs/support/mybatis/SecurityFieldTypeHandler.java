@@ -1,6 +1,6 @@
 package com.cloudin.commons.langs.support.mybatis;
 
-import com.cloudin.commons.langs.security.AESUtils;
+import com.cloudin.commons.langs.security.AES;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
@@ -22,13 +22,14 @@ import java.sql.SQLException;
 public class SecurityFieldTypeHandler implements TypeHandler<String> {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	private static String	SEC_FIELD_KEY = "a0Eyhv9IdqBMhS4N";
-	
+	private static String	SEC_FIELD_IV = "a0Eyhv9IdqBMhS4N";
+
 	@Override
 	public void setParameter(PreparedStatement ps, int i, String parameter, JdbcType jdbcType) throws SQLException {
 		try {
-			String value = AESUtils.encryptToBase64(SEC_FIELD_KEY, parameter);
+			String value = AES.AES_CBC_PKCS5PADDING.encryptToBase64(SEC_FIELD_KEY, SEC_FIELD_IV, parameter);
 			ps.setString(i, value);
 		} catch (Exception e) {
 			logger.error(MessageFormatter.format("i={},parameter={}", i, parameter).getMessage(), e);
@@ -40,7 +41,7 @@ public class SecurityFieldTypeHandler implements TypeHandler<String> {
 		String value = rs.getString(columnName);
 		if (StringUtils.isNotEmpty(value)) {
 			try {
-				return AESUtils.decryptBase64(SEC_FIELD_KEY, value);
+				return AES.AES_CBC_PKCS5PADDING.decryptToString(SEC_FIELD_KEY, SEC_FIELD_IV, value);
 			} catch (Throwable t) {
 				logger.error(MessageFormatter.format("columnName={},value={}", columnName, value).getMessage(), t);
 			}
@@ -53,7 +54,7 @@ public class SecurityFieldTypeHandler implements TypeHandler<String> {
 		String value = rs.getString(columnIndex);
 		if (StringUtils.isNotEmpty(value)) {
 			try {
-				return AESUtils.decryptBase64(SEC_FIELD_KEY, value);
+				return AES.AES_CBC_PKCS5PADDING.decryptToString(SEC_FIELD_KEY, SEC_FIELD_IV, value);
 			} catch (Throwable t) {
 				logger.error(MessageFormatter.format("columnIndex={},value={}", columnIndex, value).getMessage(), t);
 			}
@@ -66,7 +67,7 @@ public class SecurityFieldTypeHandler implements TypeHandler<String> {
 		String value = cs.getString(columnIndex);
 		if (StringUtils.isNotEmpty(value)) {
 			try {
-				return AESUtils.decryptBase64(SEC_FIELD_KEY, value);
+				return AES.AES_CBC_PKCS5PADDING.decryptToString(SEC_FIELD_KEY, SEC_FIELD_IV, value);
 			} catch (Throwable t) {
 				logger.error(MessageFormatter.format("columnIndex={},value={}", columnIndex, value).getMessage(), t);
 			}
