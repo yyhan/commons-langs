@@ -1,6 +1,8 @@
 package com.cloudin.commons.langs.support.aliyun;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.text.ParseException;
@@ -13,6 +15,8 @@ import java.util.Date;
  * @version 1.0.0, 2017/10/25 0025 15:51
  */
 public class STSCredential implements Serializable {
+
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private String accessKeyId;
 	
@@ -32,7 +36,7 @@ public class STSCredential implements Serializable {
 		try {
 			this.expirationDate = DateUtils.parseDate(expiration, "yyyy-MM-dd'T'HH:mm:ssZZ");
 		} catch (ParseException e) {
-			e.printStackTrace();
+			logger.error("", e);
 		}
 	}
 	

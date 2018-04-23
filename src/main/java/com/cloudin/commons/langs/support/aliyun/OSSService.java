@@ -57,7 +57,7 @@ public class OSSService {
 	 */
 	private String endPoint;
 	/**
-	 * OSS bucket 访问坐标，例如：http://fanweijubaopay.oss-cn-hangzhou.aliyuncs.com
+	 * OSS bucket 访问坐标，例如：http://bucket.oss-cn-hangzhou.aliyuncs.com
 	 */
 	private String ossDomain;
 	/**
@@ -219,6 +219,9 @@ public class OSSService {
 	 * @throws com.aliyuncs.exceptions.ClientException
 	 */
 	private STSCredential getCredential(String resource, String roleSessionName, int expectToUseTime, String[] actions) throws ClientException {
+		if(resource.startsWith("/")) {
+			resource = resource.substring(1);
+		}
 		StringBuilder builder = new StringBuilder();
 		for(String action : actions){
 			builder.append(action);
@@ -274,6 +277,9 @@ public class OSSService {
 			logger.warn("srcUrl[{}] 和 ossDomain[{}] 的域名不一致", srcUrl, ossDomain);
 			return srcUrl;
 		}
+		if(resource.startsWith("/")) {
+			resource = resource.substring(1);
+		}
 		String ossKey = getOssKey(srcUrl);
 
 		try {
@@ -320,6 +326,9 @@ public class OSSService {
 	 */
 	public String uploadFile(String path, InputStream inputStream) throws Exception {
 		try {
+			if(path.startsWith("/")) {
+				path = path.substring(1);
+			}
 			STSCredential credential = getWriteOnlyCredential("", bucket + "_default", defaultUseTime);
 			OSSUtil.uploadFile(endPoint, credential.getAccessKeyId(), credential.getAccessKeySecret(), credential.getSecurityToken(), bucket, path, inputStream);
 			return String.format("http://%s.oss-%s.aliyuncs.com/%s", getBucket(), getRegion(), path);

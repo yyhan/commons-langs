@@ -2,7 +2,6 @@ package com.cloudin.commons.langs.support.aliyun;
 
 /**
  * oss 静态工具类，支持静态初始化 和 spring 两种初始化方式
- * Created by xiaotian on 2017/9/11 0011.
  *
  * @author 小天
  * @version 1.0.0, 2017/10/25 0025 15:51
@@ -30,10 +29,10 @@ public class OSSTool {
 	}
 	
 	/**
-	 * 针对聚宝云用户生成oss授权访问链接
+	 * 针对用户生成oss授权访问链接
 	 *
 	 * @param url    原始oss url
-	 * @param userId 聚宝云用户ID
+	 * @param userId 用户ID
 	 *
 	 * @return
 	 */

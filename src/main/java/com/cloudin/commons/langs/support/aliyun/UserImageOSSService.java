@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.InputStream;
 
 /**
- * 用户敏感图片 OSS Service
+ * 用户图片 OSS Service
  *
  * @author 小天
  * @version 1.0.0, 2017/10/25 0025 15:51
@@ -24,10 +24,10 @@ public class UserImageOSSService extends OSSService {
 	}
 	
 	/**
-	 * 针对聚宝云用户生成oss授权访问链接
+	 * 针对用户生成oss授权访问链接
 	 *
 	 * @param url    原始oss url
-	 * @param userId 聚宝云用户ID
+	 * @param userId 用户ID
 	 *
 	 * @return
 	 */
