@@ -19,7 +19,12 @@ public class UserImageOSSService extends OSSService {
 	public UserImageOSSService(String rootDir, String accessKeyID, String accessKeySecret, String ossDomain,
 		String roleArn, int expir) {
 		super(accessKeyID, accessKeySecret, ossDomain, roleArn, expir);
-		this.rootDir = rootDir;
+
+		if(rootDir.startsWith("/")) {
+			this.rootDir = rootDir.substring(1);
+		} else {
+			this.rootDir = rootDir;
+		}
 		
 	}
 	

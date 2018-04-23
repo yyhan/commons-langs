@@ -19,11 +19,11 @@ public class OSSUtil {
 	/**
 	 * 使用指定的访问Id和密钥，生成 path 参数指定文件的签名后的访问链接。建议使用阿里云子账号的访问ID和密钥
 	 *
-	 * @param endPoint        OSS服务的Endpoint。
-	 * @param accessKeyId     访问ID。
-	 * @param secretAccessKey 访问密钥。
+	 * @param endPoint        OSS 服务的 Endpoint。
+	 * @param accessKeyId     STS 提供的临时访问ID。
+	 * @param secretAccessKey STS 提供的临时访问密钥。
 	 * @param bucket          oss bucket
-	 * @param path            oss 文件路径，例如： "image/test.jpg"， 不需要 '/' 开头
+	 * @param path            oss 文件路径，例如： "/image/user/1/201801010001.jpg"
 	 * @param expir           生成的链接有效期，单位：秒
 	 *
 	 * @return 签名后的访问链接
@@ -44,12 +44,12 @@ public class OSSUtil {
 	/**
 	 * 使用STS服务临时授权的安全令牌，生成 path 参数指定文件的签名后的访问链接
 	 *
-	 * @param endPoint        OSS服务的Endpoint。
-	 * @param accessKeyId     STS提供的临时访问ID。
-	 * @param secretAccessKey STS提供的临时访问密钥。
-	 * @param securityToken   STS提供的临时安全令牌。
+	 * @param endPoint        OSS 服务的 Endpoint。
+	 * @param accessKeyId     STS 提供的临时访问ID。
+	 * @param secretAccessKey STS 提供的临时访问密钥。
+	 * @param securityToken   STS 提供的临时安全令牌。
 	 * @param bucket          oss bucket
-	 * @param path            oss 文件路径，例如： "image/test.jpg"， 不需要 '/' 开头
+	 * @param path            oss 文件路径，例如： "/image/user/1/201801010001.jpg"
 	 * @param expir           生成的链接有效期，单位：秒
 	 *
 	 * @return 签名后的访问链接
@@ -75,7 +75,7 @@ public class OSSUtil {
 	 * @param accessKeyId     访问ID。
 	 * @param secretAccessKey 访问密钥。
 	 * @param bucket          oss bucket
-	 * @param path            oss 文件路径，例如： "image/test.jpg"， 不需要 '/' 开头
+	 * @param path            oss 文件路径，例如： "/image/user/1/201801010001.jpg"
 	 * @param file            文件
 	 */
 	public static void uploadFile(String endPoint, String accessKeyId, String secretAccessKey, String bucket,
@@ -93,12 +93,12 @@ public class OSSUtil {
 	 *
 	 * 不抛出异常，即是上传成功。依赖 “putObject” 权限
 	 *
-	 * @param endPoint        OSS服务的Endpoint。
-	 * @param accessKeyId     STS提供的临时访问ID。
-	 * @param secretAccessKey STS提供的临时访问密钥。
-	 * @param securityToken   STS提供的临时安全令牌。
+	 * @param endPoint        OSS 服务的 Endpoint。
+	 * @param accessKeyId     STS 提供的临时访问ID。
+	 * @param secretAccessKey STS 提供的临时访问密钥。
+	 * @param securityToken   STS 提供的临时安全令牌。
 	 * @param bucket          oss bucket
-	 * @param path            oss 文件路径，例如： "image/test.jpg"， 不需要 '/' 开头
+	 * @param path            oss 文件路径，例如： "/image/user/1/201801010001.jpg"
 	 * @param inputStream     输入流
 	 */
 	public static void uploadFile(String endPoint, String accessKeyId, String secretAccessKey, String securityToken, String bucket,
@@ -116,12 +116,12 @@ public class OSSUtil {
 	 *
 	 * 不抛出异常，即是上传成功。依赖 “doesObjectExist” 权限
 	 *
-	 * @param endPoint        OSS服务的Endpoint。
-	 * @param accessKeyId     STS提供的临时访问ID。
-	 * @param secretAccessKey STS提供的临时访问密钥。
-	 * @param securityToken   STS提供的临时安全令牌。
+	 * @param endPoint        OSS 服务的Endpoint。
+	 * @param accessKeyId     STS 提供的临时访问ID。
+	 * @param secretAccessKey STS 提供的临时访问密钥。
+	 * @param securityToken   STS 提供的临时安全令牌。
 	 * @param bucket          oss bucket
-	 * @param path            oss 文件路径，例如： "image/test.jpg"， 不需要 '/' 开头
+	 * @param path            oss 文件路径，例如： "/image/user/1/201801010001.jpg"
 	 *
 	 * @return 返回path对应的文件是否存在
 	 */
