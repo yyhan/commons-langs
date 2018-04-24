@@ -78,6 +78,20 @@ public class OSSService {
     private int defaultUseTime = 120;
 
     /**
+     * 角色 session 名称，用于审计
+     */
+    private String defaultRoleSessionName;
+
+    /**
+     * 根目录
+     */
+    private String rootDir;
+    /**
+     * 根目录资源
+     */
+    private String rootDirResource;
+
+    /**
      * @param accessKeyID     访问ID
      * @param accessKeySecret 访问密钥
      * @param ossDomain       OSS 访问域名，格式： http://{bucket}.oss-{region}.aliyuncs.com
@@ -85,11 +99,35 @@ public class OSSService {
      * @param expir           STS临时访问凭证有效时间
      */
     public OSSService(String accessKeyID, String accessKeySecret, String ossDomain, String roleArn, int expir) {
+        this(accessKeyID, accessKeySecret, ossDomain, "/", roleArn, expir);
+    }
+
+    /**
+     * @param accessKeyID     访问ID
+     * @param accessKeySecret 访问密钥
+     * @param ossDomain       OSS 访问域名，格式： http://{bucket}.oss-{region}.aliyuncs.com
+     * @param rootDir         根目录
+     * @param roleArn         角色的全局资源描述符，在 RAM 控制台上获取，例如：acs:ram:*:1234567890123456:role/devops
+     * @param expir           STS临时访问凭证有效时间
+     */
+    public OSSService(String accessKeyID, String accessKeySecret, String ossDomain, String rootDir, String roleArn, int expir) {
         this.accessKeyID = accessKeyID;
         this.accessKeySecret = accessKeySecret;
         this.roleArn = roleArn;
         this.expir = expir;
         this.ossDomain = ossDomain;
+
+        if(rootDir == null) {
+            this.rootDir = "/";
+        } else {
+            this.rootDir = rootDir;
+        }
+
+        if(this.rootDir.endsWith("/")) {
+            this.rootDirResource = this.rootDir + "*";
+        } else {
+            this.rootDirResource = this.rootDir + "/*";
+        }
 
         Pattern pattern = Pattern.compile("^http[s]?:\\/\\/(\\S+).oss-(\\S+).aliyuncs.com$");
         Matcher matcher = pattern.matcher(ossDomain);
@@ -100,6 +138,8 @@ public class OSSService {
         } else {
             throw new IllegalArgumentException("ossDomain 格式错误");
         }
+
+        this.defaultRoleSessionName = bucket + "_server_anonymous";
     }
 
     /**
@@ -175,7 +215,6 @@ public class OSSService {
     /**
      * 获取只读权限安全令牌
      *
-     * @param resource        每次授权的资源路径（请尽量缩小资源范围），例如： /image/user/123/*
      * @param roleSessionName 角色 session 名称，用于审计
      * @param expectToUseTime 期望使用的时长，单位：秒。 expectToUseTime + {@link #minTimeToExpir} <= {@link #expir}
      *
@@ -183,14 +222,13 @@ public class OSSService {
      *
      * @throws com.aliyuncs.exceptions.ClientException
      */
-    public STSCredential getReadOnlyCredential(String resource, String roleSessionName, int expectToUseTime) throws ClientException {
-        return getCredential(resource, roleSessionName, expectToUseTime, new String[]{"oss:GetObject"});
+    protected STSCredential getReadOnlyCredential(String roleSessionName, int expectToUseTime) throws ClientException {
+        return getCredential(rootDirResource, roleSessionName, expectToUseTime, new String[]{"oss:GetObject"});
     }
 
     /**
      * 获取只写权限安全令牌
      *
-     * @param resource        每次授权的资源路径（请尽量缩小资源范围），例如： /image/user/123/*
      * @param roleSessionName 角色 session 名称，用于审计
      * @param expectToUseTime 期望使用的时长，单位：秒。 expectToUseTime + {@link #minTimeToExpir} <= {@link #expir}
      *
@@ -198,14 +236,14 @@ public class OSSService {
      *
      * @throws com.aliyuncs.exceptions.ClientException
      */
-    public STSCredential getWriteOnlyCredential(String resource, String roleSessionName, int expectToUseTime) throws ClientException {
-        return getCredential(resource, roleSessionName, expectToUseTime, new String[]{"oss:PutObject"});
+    protected STSCredential getWriteOnlyCredential(String roleSessionName, int expectToUseTime) throws ClientException {
+        return getCredential(rootDirResource, roleSessionName, expectToUseTime, new String[]{"oss:PutObject"});
     }
 
     /**
      * 获取只读权限安全令牌
      *
-     * @param resource        每次授权的资源路径（请尽量缩小资源范围），例如： /image/user/123/*
+     * @param resource        每次授权的资源路径（请尽量缩小资源范围），必须以 '/' 开头，例如： /image/user/123/*
      * @param roleSessionName 角色 session 名称，用于审计
      * @param expectToUseTime 期望使用的时长，单位：秒。 expectToUseTime + {@link #minTimeToExpir} <= {@link #expir}
      * @param actions         授权的操作，参考阿里云文档
@@ -215,9 +253,7 @@ public class OSSService {
      * @throws com.aliyuncs.exceptions.ClientException
      */
     private STSCredential getCredential(String resource, String roleSessionName, int expectToUseTime, String[] actions) throws ClientException {
-        if (resource.startsWith("/")) {
-            resource = resource.substring(1);
-        }
+
         StringBuilder builder = new StringBuilder();
         for (String action : actions) {
             builder.append(action);
@@ -237,7 +273,7 @@ public class OSSService {
             }
         }
 
-        String policy = buildPolicy(actions, new String[]{String.format("acs:oss:*:*:%s/%s", bucket, resource)});
+        String policy = buildPolicy(actions, new String[]{String.format("acs:oss:*:*:%s%s", bucket, resource)});
 
         // 获取安全令牌
         AssumeRoleResponse assumeRoleResponse = STSUtil
@@ -259,13 +295,12 @@ public class OSSService {
      * 对原始oss访问链接签名，生成携带授权签名的访问链接
      *
      * @param srcUrl          原始 oss 访问链接，格式：http://{bucket}.oss-{region}.aliyuncs.com/image/user/1/201801010001.jpg
-     * @param resource        每次授权的资源路径，例如： /image/user/1/*
      * @param roleSessionName 角色 session 名称，用于审计
      * @param useTime         生成的链接使用时长，单位：秒
      *
      * @return 携带授权签名的访问链接，链接的真实有效时长为： useTime + {@link #minTimeToExpir}
      */
-    public String generateReadOnlyURL(String srcUrl, String resource, String roleSessionName, int useTime) {
+    public String generateReadOnlyURL(String srcUrl, String roleSessionName, int useTime) {
         if (StringUtils.isEmpty(srcUrl)) {
             return null;
         }
@@ -273,13 +308,15 @@ public class OSSService {
             logger.warn("srcUrl[{}] 和 ossDomain[{}] 的域名不一致", srcUrl, ossDomain);
             return srcUrl;
         }
-        if (resource.startsWith("/")) {
-            resource = resource.substring(1);
+
+        if(StringUtils.isEmpty(roleSessionName)) {
+            roleSessionName = defaultRoleSessionName;
         }
+
         String ossKey = getOssKey(srcUrl);
 
         try {
-            STSCredential credential = getReadOnlyCredential(resource, roleSessionName, useTime);
+            STSCredential credential = getReadOnlyCredential(roleSessionName, useTime);
             if (credential != null) {
                 // 使用安全令牌生成签名后的oss访问链接
                 String generatedUrl = OSSUtil
@@ -303,19 +340,41 @@ public class OSSService {
      * 对原始oss访问链接签名，生成携带授权签名的访问链接
      *
      * @param srcUrl          原始 oss 访问链接，格式： http://{bucket}.oss-{region}.aliyuncs.com/image/user/test.jpg
-     * @param resource        每次授权的资源路径，例如： /image/user/1/*
      * @param roleSessionName 角色 session 名称，用于审计
      *
      * @return 携带授权签名的访问链接
      */
-    protected String generateReadOnlyURL(String srcUrl, String resource, String roleSessionName) {
-        return generateReadOnlyURL(srcUrl, resource, roleSessionName, defaultUseTime);
+    public String generateReadOnlyURL(String srcUrl, String roleSessionName) {
+        return generateReadOnlyURL(srcUrl, roleSessionName, defaultUseTime);
+    }
+
+    /**
+     * 对原始oss访问链接签名，生成携带授权签名的访问链接
+     *
+     * @param srcUrl          原始 oss 访问链接，格式： http://{bucket}.oss-{region}.aliyuncs.com/image/user/test.jpg
+     * @param useTime         生成的链接使用时长，单位：秒
+     *
+     * @return 携带授权签名的访问链接
+     */
+    public String generateReadOnlyURL(String srcUrl, int useTime) {
+        return generateReadOnlyURL(srcUrl, defaultRoleSessionName, useTime);
+    }
+
+    /**
+     * 对原始oss访问链接签名，生成携带授权签名的访问链接
+     *
+     * @param srcUrl          原始 oss 访问链接，格式： http://{bucket}.oss-{region}.aliyuncs.com/image/user/test.jpg
+     *
+     * @return 携带授权签名的访问链接
+     */
+    public String generateReadOnlyURL(String srcUrl) {
+        return generateReadOnlyURL(srcUrl, defaultRoleSessionName, defaultUseTime);
     }
 
     /**
      * 上传文件到 oss
      *
-     * @param path        oss 文件路径，例如： "/image/user/1/2018010100001.jpg"
+     * @param path        oss 文件路径，比如以 {@link #rootDir} 开头，例如： "${rootDir}/1/2018010100001.jpg"
      * @param inputStream 输入流
      *
      * @return 图片在oss上的访问路径
@@ -325,7 +384,7 @@ public class OSSService {
             if (path.startsWith("/")) {
                 path = path.substring(1);
             }
-            STSCredential credential = getWriteOnlyCredential("", bucket + "_default", defaultUseTime);
+            STSCredential credential = getWriteOnlyCredential(defaultRoleSessionName, defaultUseTime);
             OSSUtil.uploadFile(endPoint, credential.getAccessKeyId(), credential.getAccessKeySecret(), credential.getSecurityToken(), bucket, path, inputStream);
             return String.format("http://%s.oss-%s.aliyuncs.com/%s", getBucket(), getRegion(), path);
         } catch (ClientException e) {
@@ -336,7 +395,7 @@ public class OSSService {
     /**
      * 判断指定文件是否存在
      *
-     * @param path oss 文件路径，例如： "image/test.jpg"， 不需要 '/' 开头
+     * @param path oss 文件路径，例如： "/image/user/1/2018010100001.jpg"
      *
      * @return 文件是否存在
      *
@@ -344,7 +403,7 @@ public class OSSService {
      */
     public boolean isExist(String path) throws Exception {
         try {
-            STSCredential credential = getReadOnlyCredential("", bucket + "_default", defaultUseTime);
+            STSCredential credential = getReadOnlyCredential(defaultRoleSessionName, defaultUseTime);
             return OSSUtil.isExist(endPoint, credential.getAccessKeyId(), credential.getAccessKeySecret(), credential.getSecurityToken(), bucket, path);
         } catch (ClientException e) {
             throw new Exception(e);
