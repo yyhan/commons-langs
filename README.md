@@ -55,14 +55,14 @@ class DemoObject{
         </array>
     </property>
     <property name="serializeConfig">
-        <bean class="com.fanwei.commons.langs.support.fastjson.SerializeConfigFactoryBean">
+        <bean class="com.cloudin.commons.langs.support.fastjson.SerializeConfigFactoryBean">
             <!-- 禁用 asm 特性，asm 特性 bug 挺多，禁用后可以解决泛型里，自定义序列化不起作用的问题 -->
             <property name="asm" value="false" />
             <property name="serializer">
                 <map key-type="java.lang.String" value-type="com.alibaba.fastjson.serializer.ObjectSerializer">
                     <!-- 添加 BigDecimal 自定义序列化类 -->
                     <entry key="java.math.BigDecimal">
-                        <bean class="com.fanwei.commons.langs.support.fastjson.DefaultBigDecimalSerializer">
+                        <bean class="com.cloudin.commons.langs.support.fastjson.DefaultBigDecimalSerializer">
                             <!-- BigDecimal 默认输出两位小数 -->
                             <constructor-arg name="defaultFormat" value="0.00" />
                         </bean>
