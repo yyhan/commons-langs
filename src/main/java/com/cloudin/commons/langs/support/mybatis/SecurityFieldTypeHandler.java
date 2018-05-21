@@ -23,8 +23,16 @@ public class SecurityFieldTypeHandler implements TypeHandler<String> {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static String	SEC_FIELD_KEY = "a0Eyhv9IdqBMhS4N";
-	private static String	SEC_FIELD_IV = "a0Eyhv9IdqBMhS4N";
+	private static String	SEC_FIELD_KEY = "0123456789abcdef";
+	private static String	SEC_FIELD_IV = "0123456789abcdef";
+
+	public void setSecFieldKey(String secFieldKey) {
+		SEC_FIELD_KEY = secFieldKey;
+	}
+
+	public void setSecFieldIv(String secFieldIv) {
+		SEC_FIELD_IV = secFieldIv;
+	}
 
 	@Override
 	public void setParameter(PreparedStatement ps, int i, String parameter, JdbcType jdbcType) throws SQLException {
