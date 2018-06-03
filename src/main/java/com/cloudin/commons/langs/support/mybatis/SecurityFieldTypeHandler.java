@@ -26,6 +26,7 @@ public class SecurityFieldTypeHandler implements TypeHandler<String> {
 	private static String	SEC_FIELD_KEY = "0123456789abcdef";
 	private static String	SEC_FIELD_IV = "0123456789abcdef";
 
+
 	public void setSecFieldKey(String secFieldKey) {
 		SEC_FIELD_KEY = secFieldKey;
 	}
@@ -41,6 +42,7 @@ public class SecurityFieldTypeHandler implements TypeHandler<String> {
 			ps.setString(i, value);
 		} catch (Exception e) {
 			logger.error(MessageFormatter.format("i={},parameter={}", i, parameter).getMessage(), e);
+			ps.setString(i, parameter);
 		}
 	}
 	
