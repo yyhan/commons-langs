@@ -95,4 +95,14 @@ public class ServletUtils {
 		}
 		return false;
 	}
+	
+	/**
+	 * 判断是否为 ajax 请求
+	 * @param request
+	 * @return
+	 */
+	public static boolean isAjax(HttpServletRequest request) {
+		String v = request.getHeader("x-requested-with");
+		return v != null && "XMLHttpRequest".equals(v);
+	}
 }
