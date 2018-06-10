@@ -37,6 +37,12 @@ public class QcloudSmsService {
         this.appKey = appKey;
     }
 
+    public QcloudSmsService(int appId, String appKey, String defaultSmsSign) {
+        this.appId = appId;
+        this.appKey = appKey;
+        this.defaultSmsSign = defaultSmsSign;
+    }
+
     public QcloudSmsService(int appId, String appKey, String defaultNationCode, String defaultSmsSign) {
         this.appId = appId;
         this.appKey = appKey;
