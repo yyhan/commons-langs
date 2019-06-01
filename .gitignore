@@ -2,7 +2,6 @@ target
 .idea
 
 *.iml
-test
 /.classpath
 /.project
 .settings
