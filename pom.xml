@@ -7,17 +7,20 @@
 
     <groupId>com.cloudin.commons</groupId>
     <artifactId>commons-langs</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.0.1</version>
 
     <packaging>jar</packaging>
     <description>系统通用的工具类。不应该依赖其它任何模块或项目。</description>
 
     <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.compilerVersion>1.7</maven.compiler.compilerVersion>
+        <!-- 指定编译器版本 -->
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+        <!-- 指定 java 源码版本，即 javac 的 -source 参数 -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <!-- 指定生成字节码的版本，即 javac 的 -target 参数 -->
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- 指定源代码的编码 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sourceEncoding>UTF-8</sourceEncoding>
 
     </properties>
 
@@ -217,6 +220,25 @@
             <artifactId>yunpian-java-sdk</artifactId>
             <version>1.2.7</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>ooxml-schemas</artifactId>
+            <version>1.4</version>
+        </dependency>
+
     </dependencies>
 
     <build>
