@@ -65,29 +65,47 @@ import java.util.List;
  * @see <a href="http://poi.apache.org/">Apache POI</a>
  */
 public class PoiWordTool {
-
+    /**
+     * 默认字体大小
+     */
+    private static final int DEFAULT_FONT_SIZE = 12;
     /**
      * 常量，在文档中定义长度和高度的单位
      */
-    private static final int PER_LINE  = 100;
+    private static final int PER_LINE          = 100;
     /**
-     * 每一磅的单位长度
+     * 基准行高
      */
-    private static final int PER_POUND = 20;
+    public static final  int LINE_HEIGHT_DXA   = 240;
 
-    public static final int A4_WIDTH_DXA         = 11906;
-    public static final int A4_HEIGHT_DXA        = 16838;
     /**
-     * 页边距默认为 1.5 cm
+     * A4 纸宽度，单位：DXA
      */
-    public static final int A4_MARGIN_TOP_DXA    = PoiUnitTool.centimeterToDXA(1.5f).intValue();
-    public static final int A4_MARGIN_RIGHT_DXA  = PoiUnitTool.centimeterToDXA(1.5f).intValue();
-    public static final int A4_MARGIN_BOTTOM_DXA = PoiUnitTool.centimeterToDXA(1.5f).intValue();
-    public static final int A4_MARGIN_LEFT_DXA   = PoiUnitTool.centimeterToDXA(1.5f).intValue();
+    public static final int A4_WIDTH_DXA          = 11906;
+    /**
+     * A4 纸高度，单位：DXA
+     */
+    public static final int A4_HEIGHT_DXA         = 16838;
+    /**
+     * 页面上边距默认为 1.5 cm
+     */
+    public static final int A4_MARGIN_TOP_DXA     = PoiUnitTool.centimeterToDXA(1.5f).intValue();
+    /**
+     * 页面右边距默认为 1.5 cm
+     */
+    public static final int A4_MARGIN_RIGHT_DXA   = PoiUnitTool.centimeterToDXA(1.5f).intValue();
+    /**
+     * 页面下边距默认为 1.5 cm
+     */
+    public static final int A4_MARGIN_BOTTOM_DXA  = PoiUnitTool.centimeterToDXA(1.5f).intValue();
+    /**
+     * 页面左边距默认为 1.5 cm
+     */
+    public static final int A4_MARGIN_LEFT_DXA    = PoiUnitTool.centimeterToDXA(1.5f).intValue();
     /**
      * 内容宽度（页面宽度减去左右页边距），单位：DXA
      */
-    public static final int A4_CONTENT_WIDTH_DXA = A4_WIDTH_DXA - A4_MARGIN_LEFT_DXA - A4_MARGIN_RIGHT_DXA;
+    public static final int A4_CONTENT_WIDTH_DXA  = A4_WIDTH_DXA - A4_MARGIN_LEFT_DXA - A4_MARGIN_RIGHT_DXA;
     /**
      * 内容高度（页面高度减去上下页边距），单位：DXA
      */
@@ -243,38 +261,50 @@ public class PoiWordTool {
      * 设置行高
      *
      * @param paragraph {@link XWPFParagraph}
-     * @param value     值（间距类型为 磅 或 多倍行距时，含义不同，例如： 1.5f 表示 1.5 倍行距）
-     * @param spaceRule 间距类型
+     * @param multiple  多倍行距，例如： 1.5f 表示 1.5 倍行距
      */
-    public static void setLineHeight(XWPFParagraph paragraph, double value, STLineSpacingRule.Enum spaceRule) {
-        XWPFRun paragraphRun = getXWPFRun(paragraph);
-        CTPPr ppr;
-        if ((ppr = paragraph.getCTP().getPPr()) == null) {
-            ppr = paragraph.getCTP().addNewPPr();
+    public static void setLineHeightMultiple(XWPFParagraph paragraph, double multiple) {
+        if (multiple == 1.0f) {
+            return;
         }
+        CTPPr ppr = getParagraphProperties(paragraph);
         CTSpacing spacing;
         if ((spacing = ppr.getSpacing()) == null) {
             spacing = ppr.addNewSpacing();
         }
-        int unit;
-        if (spaceRule == null) {
-            spaceRule = STLineSpacingRule.AUTO;
+        spacing.setLine(BigInteger.valueOf((long) (multiple * LINE_HEIGHT_DXA)));
+        spacing.setLineRule(STLineSpacingRule.AUTO);
+    }
+
+    /**
+     * 设置行高
+     *
+     * @param paragraph {@link XWPFParagraph}
+     * @param value     行高，单位：磅
+     */
+    public static void setLineHeightExact(XWPFParagraph paragraph, double value) {
+        CTPPr ppr = getParagraphProperties(paragraph);
+        CTSpacing spacing;
+        if ((spacing = ppr.getSpacing()) == null) {
+            spacing = ppr.addNewSpacing();
         }
-        if (spaceRule.intValue() == STLineSpacingRule.INT_AUTO) {
-            // 当行距规则为多倍行距时，单位为行，且最小为 0.06 行
-            unit = PoiUnitTool.pointToDXA(paragraphRun.getFontSize()).intValue();
-            if (value < 0.06) {
-                value = 0.06;
-            }
-        } else {
-            // 当行距规则为固定值或最小值时，单位为磅，且最小为 0.7 磅
-            unit = PER_POUND;
-            if (value < 0.7) {
-                value = 0.7;
-            }
+        spacing.setLine(PoiUnitTool.pointToDXA(value));
+        spacing.setLineRule(STLineSpacingRule.EXACT);
+    }
+
+    /**
+     * 获取段落属性
+     *
+     * @param paragraph 段落 {@link XWPFParagraph}
+     *
+     * @return 段落属性 {@link CTPPr}
+     */
+    public static CTPPr getParagraphProperties(XWPFParagraph paragraph) {
+        CTPPr ppr;
+        if ((ppr = paragraph.getCTP().getPPr()) == null) {
+            return paragraph.getCTP().addNewPPr();
         }
-        spacing.setLine(BigInteger.valueOf((long) (value * unit)));
-        spacing.setLineRule(spaceRule);
+        return ppr;
     }
 
     /**
@@ -285,16 +315,13 @@ public class PoiWordTool {
      * @param after     段落后间距（单位：磅）
      */
     public static void setParagraphSpaceOfPound(XWPFParagraph paragraph, double before, double after) {
-        CTPPr ppr;
-        if ((ppr = paragraph.getCTP().getPPr()) == null) {
-            ppr = paragraph.getCTP().addNewPPr();
-        }
+        CTPPr ppr = getParagraphProperties(paragraph);
         CTSpacing spacing;
         if ((spacing = ppr.getSpacing()) == null) {
             spacing = ppr.addNewSpacing();
         }
-        spacing.setBeforeLines(BigInteger.valueOf((long) (before * PER_POUND)));
-        spacing.setAfterLines(BigInteger.valueOf((long) (after * PER_POUND)));
+        spacing.setBeforeLines(PoiUnitTool.pointToDXA(before));
+        spacing.setAfterLines(PoiUnitTool.pointToDXA(after));
     }
 
     /**
@@ -305,16 +332,13 @@ public class PoiWordTool {
      * @param afterLines  段落后间距（单位：行，例如：1.5f 表示 1.5 倍行距）
      */
     public static void setParagraphSpaceOfLine(XWPFParagraph paragraph, double beforeLines, double afterLines) {
-        CTPPr ppr;
-        if ((ppr = paragraph.getCTP().getPPr()) == null) {
-            ppr = paragraph.getCTP().addNewPPr();
-        }
+        CTPPr ppr = getParagraphProperties(paragraph);
         CTSpacing spacing;
         if ((spacing = ppr.getSpacing()) == null) {
             spacing = ppr.addNewSpacing();
         }
-        spacing.setBeforeLines(BigInteger.valueOf((long) (beforeLines * PER_LINE)));
-        spacing.setAfterLines(BigInteger.valueOf((long) (afterLines * PER_LINE)));
+        spacing.setBefore(BigInteger.valueOf((long) (beforeLines * LINE_HEIGHT_DXA)));
+        spacing.setAfterLines(BigInteger.valueOf((long) (afterLines * LINE_HEIGHT_DXA)));
     }
 
     /**
@@ -325,6 +349,19 @@ public class PoiWordTool {
     public static void addBreak(XWPFParagraph paragraph) {
         XWPFRun paragraphRun = getXWPFRun(paragraph);
         paragraphRun.addBreak();
+    }
+
+    /**
+     * @param paragraph {@link XWPFParagraph}
+     *
+     * @return {@link XWPFRun}
+     */
+    private static XWPFRun getLastXWPFRun(XWPFParagraph paragraph) {
+        XWPFRun paragraphRun = null;
+        if (paragraph.getRuns() != null && paragraph.getRuns().size() > 0) {
+            paragraphRun = paragraph.getRuns().get(paragraph.getRuns().size() - 1);
+        }
+        return paragraphRun;
     }
 
     /**
@@ -403,8 +440,8 @@ public class PoiWordTool {
     /**
      * 添加图片
      *
-     * @param paragraph {@link XWPFParagraph}
-     * @param imgFile   图片文件绝对地址
+     * @param paragraph  {@link XWPFParagraph}
+     * @param imgFile    图片文件绝对地址
      * @param autoResize 自动调整图片大小
      *
      * @return {@link XWPFPicture}
@@ -432,11 +469,11 @@ public class PoiWordTool {
                 final String imgEx = URLUtils.getExNameFromUrl(imgFile);
 
                 BufferedImage newImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
-                newImage.getGraphics().drawImage(image, 0, 0,newWidth, newHeight, null);
+                newImage.getGraphics().drawImage(image, 0, 0, newWidth, newHeight, null);
 
                 File newImgFile = TempFileUtil.createTempFile(TempFileUtil.createTempFileDir());
 
-                try (FileOutputStream fileOutputStream = new FileOutputStream(newImgFile)){
+                try (FileOutputStream fileOutputStream = new FileOutputStream(newImgFile)) {
                     ImageIO.write(newImage, imgEx, fileOutputStream);
                     return addPicture(paragraph, newImgFile.getAbsolutePath(), newWidth, newHeight);
                 }
@@ -449,6 +486,7 @@ public class PoiWordTool {
      * 获取图片类型
      *
      * @param imgFile 图片文件名称
+     *
      * @return 图片类型
      *
      * @see Document
@@ -552,7 +590,7 @@ public class PoiWordTool {
             //构建图片流
             BufferedImage tag = new BufferedImage(expectedWidth, expectedHeight, BufferedImage.TYPE_INT_RGB);
             //绘制改变尺寸后的图
-            tag.getGraphics().drawImage(image, 0, 0,expectedWidth, expectedHeight, null);
+            tag.getGraphics().drawImage(image, 0, 0, expectedWidth, expectedHeight, null);
             //输出流
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("E:/copy.png"));
         }
@@ -597,8 +635,6 @@ public class PoiWordTool {
 //        }
 
 //        expectedHeight = PoiUnitTool.pixelToDXA(height);
-
-
 
 
         double widthPoints = Units.pixelToPoints(width);
